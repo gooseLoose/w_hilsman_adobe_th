@@ -8,7 +8,7 @@ on:
       - main
 env:
   AWS_REGION: us-east-2
-  ROLE_TO_ASSUME: arn:aws:iam::901332461460:oidc-provider/token.actions.githubusercontent.com
+  ROLE_TO_ASSUME: arn:aws:iam::901332461460:role/GitHubAction-AssumeRoleWithAction
   ROLE_SESSION_NAME: GitHub_to_AWS_via_FederatedOIDC
 # Permission can be added at job level or workflow level
 permissions:
