@@ -51,7 +51,7 @@ resource "aws_iam_role_policy" "s3_write" {
 }
 
 resource "aws_iam_role_policy" "github_actions_layer_access" {
-  name = "${var.function_name}-s3-write"
+  name = "${var.function_name}-layer-access"
   role = aws_iam_role.this.id
 
   policy = jsonencode({
