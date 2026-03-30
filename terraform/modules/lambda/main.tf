@@ -61,7 +61,7 @@ resource "aws_iam_role_policy" "github_actions_layer_access" {
       Action = [
         "lambda:GetLayerVersion"
       ]
-      Resource = "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:16"
+      Resource = "arn:aws:lambda:us-east-2:336392948345:layer:AWSSDKPandas-Python312:16"
     }]
   })
 }
