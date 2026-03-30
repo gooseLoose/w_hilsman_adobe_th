@@ -1,6 +1,9 @@
+
+import csv
+import pandas as pd
+
 from dataclasses import dataclass, field
 from typing import Optional
-import csv
 
 from urllib.parse import urlparse, parse_qs
 
@@ -105,3 +108,27 @@ class SpaceHit:
             "engine_name":           self.engine_name,
             "query_key":             self.query_key
         }
+
+
+class HitProcesser:
+    """Reads a tab delimted file from S3 and parses said file into a final organized output"""
+
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.hits: list[SpaceHit] = []
+
+
+    def fetch_hits(self):
+        "Fetch local hits from a file path."
+        with open(self.file_path, 'r') as hit_file:
+            string_data = hit_file.read()
+
+        return string_data
+
+
+    def parse_hits(self, data):
+        """Parse file into SpaceHit objects for data validation and transofrmation"""
+        reader = csv.DictReader(data.splitlines(), delimiter="\t")
+        for row in reader:
+            print(row)
+
