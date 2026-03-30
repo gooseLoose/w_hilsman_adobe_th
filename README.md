@@ -136,3 +136,4 @@ Computers;HP Pavillion;1;1000;200|201,Office Supplies;Red Folders;4;4.00;205|206
     4a. Removal of carriage characters within file delivery process termed as `^M$` or `\r\n`
     4b. Determine if file delivery will come with, or without headers
 5. Expectation of data retreival. Should it be sent, accessible, or potentially built out with visuals.
+6. Better understnad the nature of product list as a value to be sent over. Currently reviewing over the data within the file it appears that each entry is strictly limited to a singular prodcut per order. Our process cannot yet handle multi-product situations. 
