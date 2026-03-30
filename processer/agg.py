@@ -1,5 +1,7 @@
 import csv
 import pandas as pd
+import boto3
+import io
 
 from dataclasses import dataclass, field
 from typing import Optional
@@ -112,17 +114,18 @@ class SpaceHit:
 class HitProcesser:
     """Reads a tab delimted file from S3 and parses said file into a final organized output"""
 
-    def __init__(self, file_path: str):
-        self.file_path = file_path
+    def __init__(self, s3_uri: str):
+        self.s3_uri = s3_uri
+        self.bucket, self.key = self._parse_s3_uri(s3_uri)
+        session = boto3.Session(profile_name="adobe")
+        self.s3_client = session.client("s3")
         self.hits: list[SpaceHit] = []
 
 
     def fetch_hits(self):
-        "Fetch local hits from a file path."
-        with open(self.file_path, 'r') as hit_file:
-            string_data = hit_file.read()
-
-        return string_data
+        "Fetch hits from an S3 object"
+        response = self.s3_client.get_object(Bucket=self.bucket, Key=self.key)
+        return response["Body"].read().decode("utf-8")
 
 
     def parse_hits(self, data):
@@ -153,8 +156,16 @@ class HitProcesser:
 
 
     def write_output(self, grouped_df: pd.DataFrame):
-        fn = self._build_filename()
-        grouped_df.to_csv(fn, sep="\t", index=False)
+        buffer = io.StringIO()
+        grouped_df.to_csv(buffer, sep="\t", index=False)
+
+        s3_key = self._build_s3_output_key()
+        self.s3_client.put_object(
+            Bucket="hits-file-agg-prod",
+            Key=s3_key,
+            Body=buffer.getvalue().encode("utf-8"),
+            ContentType="text/plain",
+        )
 
 
     def build_output(self) -> pd.DataFrame:
@@ -192,6 +203,18 @@ class HitProcesser:
             ))
         return final_df
     
+    def _parse_s3_uri(self, uri: str) -> tuple[str, str]:
+            """Split s3://bucket/key/path into (bucket, key)."""
+            if not uri.startswith("s3://"):
+                raise ValueError(f"Expected an s3:// URI, got: {uri}")
+            parts = uri[5:].split("/", 1)
+            return parts[0], parts[1]
+    
     def _build_filename(self) -> str:
         today_format = datetime.today().strftime('%Y-%m-%d')
         return f"{today_format}_SearchKeywordPerformance.tab"
+    
+    def _build_s3_output_key(self) -> str:
+        today = datetime.today().strftime('%Y-%m-%d')
+        filename = self._build_filename()
+        return f"{today}/{filename}"
