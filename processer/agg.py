@@ -117,8 +117,7 @@ class HitProcesser:
     def __init__(self, s3_uri: str):
         self.s3_uri = s3_uri
         self.bucket, self.key = self._parse_s3_uri(s3_uri)
-        session = boto3.Session(profile_name="adobe")
-        self.s3_client = session.client("s3")
+        self.s3_client = boto3.client("s3")
         self.hits: list[SpaceHit] = []
 
 
@@ -218,3 +217,17 @@ class HitProcesser:
         today = datetime.today().strftime('%Y-%m-%d')
         filename = self._build_filename()
         return f"{today}/{filename}"
+
+
+def lambda_handler(event, context):
+    """AWS Lambda entry point — S3 trigger passes bucket/key in the event."""
+    record = event["Records"][0]["s3"]
+    bucket = record["bucket"]["name"]
+    key    = record["object"]["key"]
+    s3_uri = f"s3://{bucket}/{key}"
+
+    processor = HitProcesser(s3_uri)
+    data = processor.fetch_hits()
+    processor.parse_hits(data)
+    final_df = processor.build_output()
+    processor.write_output(final_df)
