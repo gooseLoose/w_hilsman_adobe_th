@@ -169,7 +169,7 @@ class TestLambdaHandler:
         with pytest.raises(ValueError, match="Malformed S3 event payload"):
             lambda_handler({}, None)
 
-    @patch("lambda_function.HitProcesser")
+    @patch("agg.HitProcesser")
     def test_valid_event_invokes_processor(self, mock_processer_cls, monkeypatch):
         monkeypatch.setenv("DESTINATION_BUCKET", "hits-file-agg-prod")
 
