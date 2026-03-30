@@ -2,3 +2,7 @@
 
 .adobe
 .vscode
+
+
+# Ignore all pyache files
+**/__pycache__/

@@ -204,18 +204,19 @@ class HitProcesser:
         base_df = (
             pd.DataFrame(val.to_dict() for val in filter_hits)[["engine_name", "ip" ,"query_key", "product_revenue"]]
         )
-        rev_df = (
-            pd.DataFrame(val.to_dict() for val in filter_purchase)[["ip", "product_revenue"]]
-            .groupby(["ip"], as_index=False)["product_revenue"]
-            .sum()
-        )
-
-        # Join dataframes based on IP to determine revenue
-        df = base_df.merge(rev_df, on="ip", how="left", suffixes=("", "_updated"))
-        df["product_revenue"] = df["product_revenue_updated"].combine_first(df["product_revenue"])
-        df = df.drop(columns=["product_revenue_updated"])
-
-        # Build out Final Dataframe to return based on client requirements
+        if filter_purchase:
+            rev_df = (
+                pd.DataFrame(v.to_dict() for v in filter_purchase)[["ip", "product_revenue"]]
+                .groupby("ip", as_index=False)["product_revenue"]
+                .sum()
+            )
+            df = base_df.merge(rev_df, on="ip", how="left", suffixes=("", "_updated"))
+            df["product_revenue"] = df["product_revenue_updated"].combine_first(df["product_revenue"])
+            df = df.drop(columns=["product_revenue_updated"])
+        else:
+            logger.warning("No purchase events found in this file — using base revenue only")
+            df = base_df
+ 
         final_df = (
             df.drop(columns=["ip"])
             .groupby(["engine_name", "query_key"], as_index=False)["product_revenue"]
@@ -225,8 +226,8 @@ class HitProcesser:
                 "engine_name":     "Search Engine Domain",
                 "query_key":       "Search Keyword",
                 "product_revenue": "Revenue",
-                }
-            ))
+            })
+        )
         return final_df
     
     def _parse_s3_uri(self, uri: str) -> tuple[str, str]:

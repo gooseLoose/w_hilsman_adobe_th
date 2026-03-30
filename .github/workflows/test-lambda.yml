@@ -1,0 +1,40 @@
+name: Test Lambda Function
+ 
+on:
+  push:
+    paths:
+      - 'processer/lambda_function.py'
+      - 'processer/test_lambda_function.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  pull_request:
+    paths:
+      - 'processer/lambda_function.py'
+      - 'processer/test_lambda_function.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+ 
+jobs:
+  test:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+ 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true          # caches the uv cache between runs
+ 
+      - name: Set up Python
+        run: uv python install 3.11
+ 
+      - name: Install dependencies
+        run: uv sync --group dev
+ 
+      - name: Run tests
+        working-directory: processer
+        run: uv run pytest
