@@ -82,7 +82,7 @@ class SpaceHit:
 
     def parse_event_name(self):
         "Create event name column using LUT provided in PDF sheet"
-        ev_lot = { "1":  "Purchase",
+        event_lut = { "1":  "Purchase",
                    "2":  "Product view",
                    "10": "Shopping Cart Open",
                    "11": "Shopping Cart Checkout",
@@ -90,7 +90,7 @@ class SpaceHit:
                    "13": "Shopping Cart Remove",
                    "14": "Shopping Cart View",
         }
-        self.event_name = ev_lot.get(self.event_list)
+        self.event_name = event_lut.get(self.event_list)
 
     def parse_referrer(self):
         "Use ULRLib to parse out host name and query params to identify keywords"
@@ -148,14 +148,19 @@ class HitProcesser:
         self.hits: list[SpaceHit] = []
 
 
-    def fetch_hits(self):
-        "Fetch hits from an S3 object"
+    def fetch_hits(self) -> str:
+        """Retrieves TSV content from the S3 URI passed at init."""
         response = self.s3_client.get_object(Bucket=self.bucket, Key=self.key)
         return response["Body"].read().decode("utf-8")
 
 
-    def parse_hits(self, data):
-        """Parse file into SpaceHit objects for data validation and transofrmation"""
+    def parse_hits(self, data: str) -> None:
+        """Parse file into SpaceHit objects for data validation and transofrmation
+        
+        Args:
+            data: str representation of tsv file pulled from src bucket
+
+        """
         reader = csv.DictReader(data.splitlines(), delimiter="\t")
         for i, row in enumerate(reader, start=1):
             try:
@@ -181,7 +186,12 @@ class HitProcesser:
                 print(f"  [warn] row {i} skipped — {e}")
 
 
-    def write_output(self, grouped_df: pd.DataFrame):
+    def write_output(self, grouped_df: pd.DataFrame) -> None:
+        """Writes output to hard coded bucket.
+        
+        Args:
+            grouped_df: df from build output following adboe business logic
+        """
         buffer = io.StringIO()
         grouped_df.to_csv(buffer, sep="\t", index=False)
 
@@ -231,17 +241,19 @@ class HitProcesser:
         return final_df
     
     def _parse_s3_uri(self, uri: str) -> tuple[str, str]:
-            """Split s3://bucket/key/path into (bucket, key)."""
-            if not uri.startswith("s3://"):
-                raise ValueError(f"Expected an s3:// URI, got: {uri}")
-            parts = uri[5:].split("/", 1)
-            return parts[0], parts[1]
+        """Split s3://bucket/key/path into (bucket, key)."""
+        if not uri.startswith("s3://"):
+            raise ValueError(f"Expected an s3:// URI, got: {uri}")
+        parts = uri[5:].split("/", 1)
+        return parts[0], parts[1]
     
     def _build_filename(self) -> str:
+        """Helper func to build required filename."""
         today_format = datetime.today().strftime('%Y-%m-%d')
         return f"{today_format}_SearchKeywordPerformance.tab"
     
     def _build_s3_output_key(self) -> str:
+        """Helper func to build s3 key including filename."""
         today = datetime.today().strftime('%Y-%m-%d')
         filename = self._build_filename()
         return f"{today}/{filename}"
