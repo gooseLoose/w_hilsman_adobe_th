@@ -22,6 +22,7 @@ module "space_bloom_hit_processer" {
   
   environment_variables = {
     ENVIRONMENT = var.environment
+    DESTINATION_BUCKET = module.hits_bucket_agg.bucket_name
   }
 }
 
