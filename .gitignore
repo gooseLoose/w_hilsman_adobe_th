@@ -1,0 +1,4 @@
+# Ignore Local Venv and Code Workspace
+
+.adobe
+.vscode
