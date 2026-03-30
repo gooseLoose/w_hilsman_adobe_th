@@ -1,5 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Optional
+import csv
+
+from urllib.parse import urlparse, parse_qs
 
 @dataclass
 class SpaceHit:
@@ -28,6 +31,11 @@ class SpaceHit:
     product_custom_events: Optional[str] = field(default=None)
     product_merch_evars: Optional[str] = field(default=None)
 
+    # Parsed Ref and Keyword
+    engine_name: Optional[str] = field(default=None)
+    query_key: Optional[str] = field(default=None)
+
+
     def parse_product_list(self):
         "Parse data from product list. Data provdied has singular product list so assuming singular product here."
         if not self.product_list:
@@ -40,7 +48,7 @@ class SpaceHit:
         self.product_custom_events = parts[4] if len(parts) > 4 else None
         self.product_merch_evars   = parts[5] if len(parts) > 5 else None
 
-    def event_loookup(self):
+    def parse_event_name(self):
         "Create event name column using LUT provided in PDF sheet"
         ev_lot = { "1":  "Purchase",
                    "2":  "Product view",
@@ -52,26 +60,48 @@ class SpaceHit:
         }
         self.event_name = ev_lot.get(self.event_list)
 
+    def parse_referrer(self):
+        "Use ULRLib to parse out host name and query params to identify keywords"
+        if not self.referrer:
+            return
+        
+        ref_map = {
+            "google": ["google", "q"],
+            "bing": ["bing", "q"],
+            "yahoo": ["yahoo", "p"],
+        }
+        
+        pr = urlparse(self.referrer)
+        host = pr.hostname or ""
+        parameters = parse_qs(pr.query)
+
+        for engine, q_map in ref_map.items():
+            if engine in host:
+                self.engine_name = engine
+                self.query_key = parameters.get(q_map[1], [None])[0].lower()
+                return
 
     def to_dict(self) -> dict:
         return {
-            "hit_time_gmt":        self.hit_time_gmt,
-            "date_time":           self.date_time,
-            "user_agent":          self.user_agent,
-            "ip":                  self.ip,
-            "event_list":          self.event_list,
-            "geo_city":            self.geo_city,
-            "geo_region":          self.geo_region,
-            "geo_country":         self.geo_country,
-            "pagename":            self.pagename,
-            "page_url":            self.page_url,
-            "product_list_raw":    self.product_list,
-            "referrer":            self.referrer,
-            "event_name":          self.event_name,
-            "product_category":    self.product_category,
-            "product_name":        self.product_name,
-            "product_num_items":   self.product_num_items,
-            "product_revenue":     self.product_revenue,
+            "hit_time_gmt":         self.hit_time_gmt,
+            "date_time":            self.date_time,
+            "user_agent":           self.user_agent,
+            "ip":                   self.ip,
+            "event_list":           self.event_list,
+            "geo_city":             self.geo_city,
+            "geo_region":           self.geo_region,
+            "geo_country":          self.geo_country,
+            "pagename":             self.pagename,
+            "page_url":             self.page_url,
+            "product_list_raw":     self.product_list,
+            "referrer":             self.referrer,
+            "event_name":           self.event_name,
+            "product_category":     self.product_category,
+            "product_name":         self.product_name,
+            "product_num_items":    self.product_num_items,
+            "product_revenue":       self.product_revenue,
             "product_custom_events": self.product_custom_events,
-            "product_merch_evars": self.product_merch_evars,
+            "product_merch_evars":   self.product_merch_evars,
+            "engine_name":           self.engine_name,
+            "query_key":             self.query_key
         }
