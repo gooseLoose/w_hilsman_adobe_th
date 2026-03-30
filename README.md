@@ -1,4 +1,52 @@
-# Overview
+# Space Bloom Hit Processer
+ 
+Processes tab-delimited hit feed files from S3, aggregates search keyword performance by engine, and writes the results to an output S3 bucket. Deployed as an AWS Lambda function triggered by S3 object uploads.
+ 
+---
+ 
+## Prerequisites
+ 
+- Python 3.11+
+- [uv](https://docs.astral.sh/uv/) — used for dependency and environment management
+- AWS credentials configured locally (for running against real S3)
+
+## Installation
+ 
+### 1. Install uv
+ 
+**macOS / Linux:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+ 
+**Windows:**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+ 
+Verify the installation:
+```bash
+uv --version
+```
+ 
+### 2. Clone the repository
+ 
+```bash
+git clone <your-repo-url>
+cd <your-repo-name>
+```
+ 
+### 3. Install dependencies
+ 
+This installs both runtime and dev dependencies (including pytest):
+```bash
+uv sync --group dev
+```
+ 
+> `uv` will automatically create a virtual environment and install all dependencies
+> pinned in `uv.lock`. You do not need to manually create or activate a virtualenv.
+ 
+---
 
 ### The Client's Question (Business problem)
 How much revenue is the client getting from external Search Engines, such as Google, Yahoo and
