@@ -158,3 +158,9 @@ for h in hits:
 print(set(r))
 >> {'search.yahoo.com', 'www.bing.com', 'www.esshopzilla.com', 'www.google.com'}
 ```
+
+
+#### Tests
+Please note that all tests here were written by Claude. Just wanted to quickly expedite rational testing by using AI here.
+Package manager chosen here is uv. Please execute the following.
+`curl -LsSf https://astral.sh/uv/install.sh | sh`
