@@ -1,7 +1,39 @@
 # Space Bloom Hit Processer
  
 Processes tab-delimited hit feed files from S3, aggregates search keyword performance by engine, and writes the results to an output S3 bucket. Deployed as an AWS Lambda function triggered by S3 object uploads.
- 
+
+Please note that I am just pretending that the company in question here is called Space Blooom. Just to have a cleint name to speak to.
+
+Project structure is the following:
+```
+└── README.md
+└── docs/
+│   └── 2026-03-30_SearchKeywordPerformance.tab              # example output file from lambda execution process
+│   └── Data-Engineer_Applicant_Programming_Exercise.pdf     # stored adobe takehome pdf
+│   └── data.sql                                             # raw data sent by Adobe team
+│   └── data.tsv                                             # processed raw file recreated as tab delimited
+│   └── event_hit_site.sql                                   # generated table ddl if ever needed
+└── processer/
+│   └── agg.py                                               # lambda code deployed to aws to process incoming hit files
+│   └── test_agg.py                                          # claude generated test code
+└── pyproject.toml                                           # uv dependencies
+└── terraform/
+│   └── backend.tf                                           # configures remote state storage in s3
+│   └── main.tf                                              # root module; instantiates lambda and s3 modules
+│   └── modules/
+│   │   └── lambda/
+│   │   │   └── main.tf                                      # defines aws_lambda_function resource
+│   │   │   └── outputs.tf                                   # exposes lambda arn and function name
+│   │   │   └── variables.tf                                 # declares input vars for lambda module
+│   │   └── s3/
+│   │   │   └── main.tf                                      # defines aws_s3_bucket resource
+│   │   │   └── outputs.tf                                   # exposes bucket id and arn
+│   │   │   └── variables.tf                                 # declares input vars for s3 module
+│   └── outputs.tf                                           # exposes root module outputs to caller
+│   └── variables.tf                                         # declares input vars for root module
+│   └── versions.tf                                          # pins terraform and provider versions
+└── uv.lock                                                  # pins dependency versions
+```
 ---
  
 ## Prerequisites
@@ -47,6 +79,7 @@ uv sync --group dev
 > pinned in `uv.lock`. You do not need to manually create or activate a virtualenv.
  
 ---
+# Adobe PDF Assignment
 
 ### The Client's Question (Business problem)
 How much revenue is the client getting from external Search Engines, such as Google, Yahoo and
