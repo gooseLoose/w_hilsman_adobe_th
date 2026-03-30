@@ -50,6 +50,22 @@ resource "aws_iam_role_policy" "s3_write" {
   })
 }
 
+resource "aws_iam_role_policy" "github_actions_layer_access" {
+  name = "${var.function_name}-s3-write"
+  role = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "lambda:GetLayerVersion"
+      ]
+      Resource = "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:16"
+    }]
+  })
+}
+
 resource "aws_lambda_function" "this" {
   function_name = var.function_name
   role          = aws_iam_role.this.arn
