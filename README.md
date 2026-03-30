@@ -137,3 +137,20 @@ Computers;HP Pavillion;1;1000;200|201,Office Supplies;Red Folders;4;4.00;205|206
     4b. Determine if file delivery will come with, or without headers
 5. Expectation of data retreival. Should it be sent, accessible, or potentially built out with visuals.
 6. Better understnad the nature of product list as a value to be sent over. Currently reviewing over the data within the file it appears that each entry is strictly limited to a singular prodcut per order. Our process cannot yet handle multi-product situations. 
+
+
+### Development Notes
+
+#### URLLIB
+Haven't handled this part of work for parsing URL in a bit. Used the below as a resource. Making an assumtion here that q satisfies the query param
+https://dev.to/hexshift/handling-url-query-parameters-in-a-lightweight-python-web-framework-54dm
+
+Finding three search domains within the current data.
+
+```python
+r = []
+for h in hits:
+    r.append(urlparse(h.referrer).hostname)
+print(set(r))
+>> {'search.yahoo.com', 'www.bing.com', 'www.esshopzilla.com', 'www.google.com'}
+```
