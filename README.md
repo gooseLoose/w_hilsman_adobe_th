@@ -144,6 +144,10 @@ Computers;HP Pavillion;1;1000;200|201,Office Supplies;Red Folders;4;4.00;205|206
 #### URLLIB
 Haven't handled this part of work for parsing URL in a bit. Used the below as a resource. Making an assumtion here that q satisfies the query param
 https://dev.to/hexshift/handling-url-query-parameters-in-a-lightweight-python-web-framework-54dm
+https://dataforseo.com/blog/what-are-google-search-parameters-and-how-to-use-them-with-serp-api#:~:text=Table_title:%20List%20of%20Popular%20Search%20Parameters%20Table_content:,on%20to%20turn%20it%20off:%20safe=images%20%7C
+
+For Bing and Google use `q`
+For Yahoo use `p`
 
 Finding three search domains within the current data.
 
