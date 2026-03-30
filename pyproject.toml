@@ -1,0 +1,20 @@
+[project]
+name = "space-bloom-hit-processer"
+version = "0.1.0"
+description = "Search keyword performance processor for Space Bloom hit data"
+requires-python = ">=3.11"
+ 
+dependencies = [
+    "boto3",
+    "pandas",
+]
+ 
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+ 
+[tool.pytest.ini_options]
+testpaths = ["processer"]
+verbosity = 2
