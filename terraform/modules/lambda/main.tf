@@ -34,6 +34,22 @@ resource "aws_iam_role_policy" "s3_read" {
   })
 }
 
+resource "aws_iam_role_policy" "s3_write" {
+  name = "${var.function_name}-s3-write"
+  role = aws_iam_role.this.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "s3:PutObject"
+      ]
+      Resource = "${var.destination_bucket_arn}/*"
+    }]
+  })
+}
+
 resource "aws_lambda_function" "this" {
   function_name = var.function_name
   role          = aws_iam_role.this.arn
