@@ -1,5 +1,6 @@
 import csv
 import pandas as pd
+import logging
 import boto3
 import io
 
@@ -8,6 +9,32 @@ from typing import Optional
 from datetime import datetime
 
 from urllib.parse import urlparse, parse_qs
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+
+def lambda_handler(event, context):
+    """AWS Lambda entry point — S3 trigger passes bucket/key in the event."""
+    s3_uri = None
+    try:
+        record = event["Records"][0]["s3"]
+        bucket = record["bucket"]["name"]
+        key    = record["object"]["key"]
+        s3_uri = f"s3://{bucket}/{key}"
+        logger.info("Processing %s", s3_uri)
+ 
+        processor = HitProcesser(s3_uri)
+        processor.parse_hits(processor.fetch_hits())
+        output_df = processor.build_output()
+        processor.write_output(output_df)
+        logger.info("Successfully wrote %d rows to output", len(output_df))
+ 
+    except (KeyError, IndexError) as e:
+        raise ValueError(f"Malformed S3 event payload: {e}") from e
+    except Exception as e:
+        logger.error("Processing failed for %s: %s", s3_uri, e)
+        raise
 
 @dataclass
 class SpaceHit:
@@ -217,17 +244,3 @@ class HitProcesser:
         today = datetime.today().strftime('%Y-%m-%d')
         filename = self._build_filename()
         return f"{today}/{filename}"
-
-
-def lambda_handler(event, context):
-    """AWS Lambda entry point — S3 trigger passes bucket/key in the event."""
-    record = event["Records"][0]["s3"]
-    bucket = record["bucket"]["name"]
-    key    = record["object"]["key"]
-    s3_uri = f"s3://{bucket}/{key}"
-
-    processor = HitProcesser(s3_uri)
-    data = processor.fetch_hits()
-    processor.parse_hits(data)
-    final_df = processor.build_output()
-    processor.write_output(final_df)
