@@ -79,7 +79,7 @@ resource "aws_lambda_function" "this" {
   timeout     = 300
   memory_size = 512
 
-  layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python312:16"]
+  layers = ["arn:aws:lambda:us-east-2:336392948345:layer:AWSSDKPandas-Python312:16"]
 
   environment {
     variables = var.environment_variables
