@@ -1,9 +1,9 @@
-
 import csv
 import pandas as pd
 
 from dataclasses import dataclass, field
 from typing import Optional
+from datetime import datetime
 
 from urllib.parse import urlparse, parse_qs
 
@@ -109,7 +109,6 @@ class SpaceHit:
             "query_key":             self.query_key
         }
 
-
 class HitProcesser:
     """Reads a tab delimted file from S3 and parses said file into a final organized output"""
 
@@ -129,6 +128,70 @@ class HitProcesser:
     def parse_hits(self, data):
         """Parse file into SpaceHit objects for data validation and transofrmation"""
         reader = csv.DictReader(data.splitlines(), delimiter="\t")
-        for row in reader:
-            print(row)
+        for i, row in enumerate(reader, start=1):
+            try:
+                hit = SpaceHit(
+                    hit_time_gmt=int(row["hit_time_gmt"]),
+                    date_time=row["date_time"],
+                    user_agent=row["user_agent"],
+                    ip=row["ip"],
+                    event_list=row["event_list"],
+                    geo_city=row["geo_city"],
+                    geo_region=row["geo_region"],
+                    geo_country=row["geo_country"],
+                    pagename=row["pagename"],
+                    page_url=row["page_url"],
+                    product_list=row["product_list"],
+                    referrer=row["referrer"],
+                )
+                hit.parse_product_list()
+                hit.parse_event_name()
+                hit.parse_referrer()
+                self.hits.append(hit)
+            except (KeyError, ValueError) as e:
+                print(f"  [warn] row {i} skipped — {e}")
 
+
+    def write_output(self, grouped_df: pd.DataFrame):
+        fn = self._build_filename()
+        grouped_df.to_csv(fn, sep="\t", index=False)
+
+
+    def build_output(self) -> pd.DataFrame:
+        """Filter out for simply values in valid search engines. Build output."""
+        se_engines = {"google", "bing", "yahoo"}
+        filter_hits = [val for val in self.hits if val.engine_name in se_engines]
+        filter_purchase = [val for val in self.hits if val.event_name == 'Purchase']
+
+        # Build first dataframe to identify engine, ip and query key
+        base_df = (
+            pd.DataFrame(val.to_dict() for val in filter_hits)[["engine_name", "ip" ,"query_key", "product_revenue"]]
+        )
+        rev_df = (
+            pd.DataFrame(val.to_dict() for val in filter_purchase)[["ip", "product_revenue"]]
+            .groupby(["ip"], as_index=False)["product_revenue"]
+            .sum()
+        )
+
+        # Join dataframes based on IP to determine revenue
+        df = base_df.merge(rev_df, on="ip", how="left", suffixes=("", "_updated"))
+        df["product_revenue"] = df["product_revenue_updated"].combine_first(df["product_revenue"])
+        df = df.drop(columns=["product_revenue_updated"])
+
+        # Build out Final Dataframe to return based on client requirements
+        final_df = (
+            df.drop(columns=["ip"])
+            .groupby(["engine_name", "query_key"], as_index=False)["product_revenue"]
+            .sum()
+            .sort_values("product_revenue", ascending=False)
+            .rename(columns={
+                "engine_name":     "Search Engine Domain",
+                "query_key":       "Search Keyword",
+                "product_revenue": "Revenue",
+                }
+            ))
+        return final_df
+    
+    def _build_filename(self) -> str:
+        today_format = datetime.today().strftime('%Y-%m-%d')
+        return f"{today_format}_SearchKeywordPerformance.tab"
