@@ -17,6 +17,9 @@ module "space_bloom_hit_processer" {
   src_dir = "${path.root}/../processer"
 
   source_bucket_arn = module.hits_bucket_post.bucket_arn
+  destination_bucket_arn = module.hits_bucket_agg.bucket_arn
+
+  
   environment_variables = {
     ENVIRONMENT = var.environment
   }
