@@ -3,6 +3,7 @@
 Processes tab-delimited hit feed files from S3, aggregates search keyword performance by engine, and writes the results to an output S3 bucket. Deployed as an AWS Lambda function triggered by S3 object uploads.
  
 ---
+
  
 ## Prerequisites
  
@@ -69,7 +70,7 @@ Given inital take home requirements, size of file, and then need to produce some
 #### Output File Requirements
 
 ##### Format
-- Tab-delimited file
+- Tab-delimited file(s)
 - Named: `YYYY-mm-dd_SearchKeywordPerformance.tab` where the date reflects the date the application executed
 
 ##### Columns
